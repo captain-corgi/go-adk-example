@@ -1,0 +1,18 @@
+# Secrets / environment configuration — never commit
+.env
+.env.*
+!.env.example
+
+# Go build / test artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace / vendor
+/vendor/
+go.work
+go.work.sum
