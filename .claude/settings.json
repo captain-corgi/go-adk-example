@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "goimports -w .",
+            "timeout": 60,
+            "statusMessage": "Formatting with goimports"
+          }
+        ]
+      }
+    ]
+  }
+}
