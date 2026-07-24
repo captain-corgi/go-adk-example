@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Example built on **Google's Agent Development Kit for Go** (`google.golang.org/adk/v2`, "adk-go").
 - **Module:** `github.com/captain-corgi/go-adk-example`
 - **Go version:** 1.26.5 (new — don't assume older stdlib features are unavailable).
-- **adk-go import:** the Go import path is `google.golang.org/adk` (the `/v2` is the module-path suffix, not part of the import). After adding the first real import, run `go mod tidy` to drop the `// indirect` marker from `google.golang.org/adk/v2` in `go.mod`.
+- **adk-go import:** packages are imported with the `google.golang.org/adk/v2` prefix, including the `/v2` (e.g., `google.golang.org/adk/v2/agent`). After adding the first real import, run `go mod tidy` to drop the `// indirect` marker from `google.golang.org/adk/v2` in `go.mod`.
 
 ## Commands
 

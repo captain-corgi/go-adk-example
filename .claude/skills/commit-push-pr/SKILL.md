@@ -16,8 +16,8 @@ Finalize and ship a set of changes: stage, commit (Conventional Commits), push t
 
 ## Workflow
 
-1. **Verify branch.** Confirm the current branch starts with `feature/`. If on `develop` or `master`, stop and create a `feature/<topic>` branch first — never commit directly to `develop`.
-2. **Review the diff.** Run `git status` and `git diff` (staged and unstaged). Briefly summarize what changed for the user.
+1. **Verify branch.** Confirm the current branch is `feature/<topic>` and was branched from `develop`; stop unless this holds. If you're on `develop`, `master`, or any other branch, create a `feature/<topic>` branch **from `develop`** first — never commit directly to `develop`, and never branch from `master` or any source other than `develop`.
+2. **Review the diff.** Run `git status`, `git diff` (unstaged changes), and `git diff --cached` (staged changes). Briefly summarize what changed for the user. After staging in step 3, re-run `git diff --cached` — the summary and user approval must be based on that exact staged patch, not the unstaged diff.
 3. **Stage.** `git add -A`, or stage only the files you both agree on.
 4. **Commit.** Write a **Conventional Commit** message:
    - Type prefix: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, or `build:`.
