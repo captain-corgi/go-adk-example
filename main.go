@@ -24,6 +24,7 @@ import (
 // Responses API, which the openaimodel integration is built around.
 const defaultModel = "gpt-4o-mini"
 
+// main loads configuration, creates the hello agent, and runs it with the provided command-line arguments.
 func main() {
 	// Load variables from .env for local development. A missing file is fine —
 	// the process environment may already provide them (e.g. CI, containers).
