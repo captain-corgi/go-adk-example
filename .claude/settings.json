@@ -1,0 +1,33 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "goimports -w .",
+            "timeout": 60,
+            "statusMessage": "Formatting with goimports"
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {
+    "adk-docs": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "mcpdoc",
+        "mcpdoc",
+        "--urls",
+        "AgentDevelopmentKit:https://adk.dev/llms.txt",
+        "--transport",
+        "stdio"
+      ],
+      "env": {}
+    }
+  }
+}
