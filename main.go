@@ -9,6 +9,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 
@@ -28,8 +29,14 @@ const defaultModel = "gpt-4o-mini"
 func main() {
 	// Load variables from .env for local development. A missing file is fine —
 	// the process environment may already provide them (e.g. CI, containers).
+	// Other failures (permission denied, malformed contents) are not, so they
+	// must abort instead of silently falling back to an incomplete config.
 	if err := godotenv.Load(); err != nil {
-		log.Printf("No .env file found (%v); relying on process environment", err)
+		if errors.Is(err, os.ErrNotExist) {
+			log.Printf("No .env file found (%v); relying on process environment", err)
+		} else {
+			log.Fatalf("Failed to load .env: %v", err)
+		}
 	}
 
 	ctx := context.Background()
