@@ -23,7 +23,7 @@ import (
 
 // defaultModel is used when OPENAI_MODEL is unset. It targets the OpenAI
 // Responses API, which the openaimodel integration is built around.
-const defaultModel = "gpt-4o-mini"
+const defaultModel = "gpt-5.6-luna"
 
 // main loads configuration, creates the hello agent, and runs it with the provided command-line arguments.
 func main() {
