@@ -60,6 +60,10 @@ jobs:
             Provide detailed feedback using inline comments for specific issues.
             Use top-level comments for general observations or praise.
 
+          # Enable full output for debugging
+          show_full_output: true
+
           # Tools for comprehensive PR review
           claude_args: |
+            --verbose
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
