@@ -85,8 +85,10 @@ func finalize(lp *landingpage.LandingPage) func(ctx agent.Context, _ any) (*sess
 		payload, _ := json.Marshal(out)
 		ev := session.NewEvent(ctx, ctx.InvocationID())
 		ev.Actions = session.EventActions{StateDelta: map[string]any{
-			keys.Build:   string(payload),
-			keys.Verdict: "", // reset for the next run's eval loop
+			keys.Build:    string(payload),
+			keys.Verdict:  "", // reset for the next run's eval loop
+			keys.Critique: "", // reset: a stale critique would steer the next run's first draft
+			keys.Draft:    "", // reset: never ship a previous run's draft if the next drafter is empty
 		}}
 		return ev, nil
 	}

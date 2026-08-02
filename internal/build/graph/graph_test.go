@@ -66,6 +66,13 @@ func TestBuildGraphProducesBuildOutput(t *testing.T) {
 	if _, ok := got[keys.Build]; !ok {
 		t.Fatalf("build_output not written; state=%v", got)
 	}
+	// Clear eval-loop state so a later pipeline run cannot inherit this run's
+	// critique or accidentally ship this run's draft.
+	for _, key := range []string{keys.Verdict, keys.Critique, keys.Draft} {
+		if got[key] != "" {
+			t.Errorf("%s = %v; want reset value", key, got[key])
+		}
+	}
 
 	// The deliverable must also be persisted as a retrievable artifact.
 	loaded, err := as.Load(ctx, &artifact.LoadRequest{AppName: app, UserID: "u1", SessionID: sess.ID(), FileName: "landing_page.md"})
