@@ -27,7 +27,7 @@ Start ─► outline(AgentNode) ─► sections(ParallelWorker) ─► assemble(
 - `sections` — `workflow.NewParallelWorker(name, sectionDrafterNode, LONGFORM_SECTION_CONCURRENCY, cfg)` runs the section drafter once per slice element; per-item branch isolation keeps each drafter's history scoped independently.
 - `assemble` — `workflow.NewFunctionNode` consumes its predecessor's slice via `node_input` and concatenates sections in outline order into one Markdown artifact.
 
-The `Deliverable` contract (`Name`, `Build(ctx, in) (*Artifact, error)`) is **unchanged**. For unit tests / direct calls, `Build` constructs the same internal `Workflow` and drives it through a runner injected at the vertical's constructor (DI, not a contract change). The build-graph wiring asks each vertical for its drafter node and wraps it in the shared eval-loop `loopagent`.
+The `Deliverable` contract (`Name`, `Build(ctx, in) (*Artifact, error)`) is **unchanged**. For unit tests / direct calls, `Build` constructs the same internal `Workflow` and drives it through a runner injected at the vertical's constructor (DI, not a contract change). The build-graph wiring obtains each vertical's drafter node through an **explicit seam** — an optional `DrafterNode() workflow.Node` accessor on the vertical (alongside the Phase 1 `Loopable` interface) — and wraps it in the shared eval-loop `loopagent`, so the graph never relies on package-specific type assertions.
 
 ## 2. Components
 

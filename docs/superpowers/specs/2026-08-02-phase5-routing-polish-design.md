@@ -22,11 +22,11 @@
 
 ## 3. Data flow
 
-Pipeline shape is unchanged. Per role: synthesis, checker, and sign-off eval bind `Strong()`; drafter, brief, ideation bind `Cheap()`. On every model call the `AfterModelCallback` emits one metrics record tagged by stage name. Sign-off now branches three ways; reject terminates before build and records learnings. At results time the collector's summary is written into `results.output` alongside the deliverable reference.
+Pipeline shape is unchanged. Per role: synthesis, checker, and sign-off eval bind `Strong()`; drafter, brief, ideation, **research**, and the Phase 3 learnings extractor bind `Cheap()`. On every model call the `AfterModelCallback` emits one metrics record tagged by stage name. Sign-off now branches three ways; reject terminates before build and records learnings. At results time the collector's summary is written into `results.output` alongside the deliverable reference.
 
 ## 4. Error handling
 
-- **Provider failover:** `OnModelErrorCallback` retries once; if `strong`'s provider errors again, it falls back to `Cheap()` and logs a `degraded: strong→cheap` marker (judgment quality degrades gracefully; the run still completes). `cheap` has nowhere cheaper to go, so its persistent failure surfaces as a stage `error` per Phase 0 rules.
+- **Provider failover (routing-layer, not callback):** because callbacks cannot hot-swap the model instance (§1), failover lives in a routing-layer wrapper: `Strong()` returns a model that retries once, then proxies to `Cheap()` on repeated error, logging a `degraded: strong→cheap` marker (judgment quality degrades gracefully; the run still completes). `cheap` has nowhere cheaper to go, so its persistent failure surfaces as a stage `error` per Phase 0 rules. `OnModelErrorCallback` only records the failure for telemetry.
 - **Sign-off reject** ends cleanly: no build runs; rejected plan + reason persisted to memory.
 - **Telemetry failure** (missing usage metadata, unset rate) is logged and skipped — never breaks the run.
 - **Known risk to validate:** the v2.1.0 `openaimodel` multi-turn encoding bug (assistant turns sent as `input_text`) must be re-checked against any newly-wired provider; if it reproduces on multi-turn stages, those stages stay single-turn via the edit-resume pattern. Report-only; no local patch.

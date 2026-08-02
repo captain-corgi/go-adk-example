@@ -59,7 +59,7 @@ The `video` role is wired into the routing layer as a named constant. **Delibera
 
 ## 4. Error handling
 - **Render failure/timeout never blocks text.** The render node recovers from any renderer error and records `status:"failed"` + `note`; the pipeline continues. The text artifact is already persisted at step 2, before render.
-- **Quota/cost guard:** if `RenderResult.Cost` exceeds `VIDEO_MAX_COST_PER_RUN` (or a daily counter), downscale to `skipped` with a logged note.
+- **Quota/cost guard (preflight + reconcile):** before submitting the render, reserve/estimate the cost against `VIDEO_MAX_COST_PER_RUN` (and a daily counter) and skip early (`status:"skipped"`) if the budget would be exceeded — the provider may otherwise accept and charge the request. After the render, reconcile against `RenderResult.Cost` and downgrade to `skipped` with a logged note on overrun.
 - **Async polling:** bounded retries + `ctx` deadline (`VIDEO_RENDER_TIMEOUT`); terminal non-success states surface as `failed`, not hangs.
 - **Missing `VIDEO_ENDPOINT` with `VIDEO_ENABLED=true`:** config-load warning, falls back to `noopRenderer` (engine still runs).
 

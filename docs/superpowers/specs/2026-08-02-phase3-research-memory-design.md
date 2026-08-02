@@ -1,6 +1,6 @@
 # Phase 3 — Live Research + Memory Loop Design (provisional)
 
-**Goal:** make two Phase-0 seams real — (a) the research stage's **external** web-search stub, and (b) the **Results → gBrain** feedback loop (campaigns distill what worked / what died / winning hooks into memory that the next campaign's research stage retrieves). Honors the [shared contract](./00-marketing-engine-overview.md) §3 and the [Phase 0](./2026-08-02-phase0-spine-design.md) section layout. No new state-key shapes — only new implementations behind existing seams.
+**Goal:** make two Phase-0 seams real — (a) the research stage's **external** web-search stub, and (b) the **Results → gBrain** feedback loop (campaigns distill what worked / what died / winning hooks into memory that the next campaign's research stage retrieves). Honors the [shared contract](./00-marketing-engine-overview.md) §3 and the [Phase 0](./2026-08-02-phase0-spine-design.md) section layout. No new top-level state keys — only new fields nested inside existing output objects (`research.output.web`, `results.output.memory_write_error`) plus a new stage output (`learnings.output`); implementations stay behind existing seams.
 
 **Open dependency (flagged):** it is unknown which web-search provider/key is available (Tavily / Serper / Bing / none). **The default design must run with no key** — it degrades to the Phase 0 local market-notes stub. `SEARCH_PROVIDER` selects the live backend once a key exists.
 
@@ -35,7 +35,7 @@ Implementations: `httpProvider` (one `RESTClient` per `SEARCH_PROVIDER`, with ti
 Phase 0 already reads `brief.output` + gBrain; Phase 3 adds: build a query from the brief's hook/ICP, call `ResearchProvider.Search`, merge snippets with gBrain memory + artifacts into `research.output` (adds a `web: [...]` array alongside the existing `internal: {...}`). The provider is injected at construction — the stage depends on the interface, not a vendor.
 
 ### 2.3 `internal/stages/results` — learnings extractor
-A sub-step (new `llmagent`, role `strong`) reads `build.output` + `signoff.output` + `plan.output`, emits `learnings.output`: a compact text blob with stable labels (`WORKED:`, `DIED:`, `HOOK:`, `VERTICAL:`, `AUDIENCE:`, `VERDICT:`). The results stage then: (1) appends that content as an event via `session.Service.AppendEvent(ctx, session, event)` where `event.LLMResponse.Content = &genai.Content{Parts: []*genai.Part{{Text: learningsText}}}` (built with `session.NewEvent`), (2) calls `memoryService.AddSessionToMemory(ctx, session)`, (3) writes `results.output`. Writes `results.output` even if memory write fails.
+A sub-step (new `llmagent`, role `strong`) reads `build.output` + `signoff.output` + `plan.output`, emits `learnings.output`: a compact text blob with stable labels (`WORKED:`, `DIED:`, `HOOK:`, `VERTICAL:`, `AUDIENCE:`, `VERDICT:`). The results stage then calls `memoryService.AddSessionToMemory(ctx, session)` and writes `results.output`. The runner already persists the learnings sub-step's `llmagent` output as a session `Event`, so the stage must **not** call `AppendEvent` again — doing so would append the learnings text twice and double-index every learning. (If the persisted event lacks retrievable text, Phase 3 makes the learnings text indexable instead of appending a duplicate.) Writes `results.output` even if memory write fails.
 
 ### 2.4 Persistence (provisional)
 In-memory `memory.Service` is lost on restart, breaking the loop across runs. Propose `MEMORY_BACKEND` (`inmemory`|`vertex`|`file`): `vertex` uses `vertexai.NewService`; `file` is a thin local impl we ship — JSON-lines of `{AppName,UserID,Event}` at `MEMORY_FILE_PATH`, replayed into an `InMemoryService` at startup and appended on each `AddSessionToMemory`. This is provisional — flagged for revisit; default stays `inmemory`.
@@ -46,7 +46,7 @@ In-memory `memory.Service` is lost on restart, breaking the loop across runs. Pr
 
 ## 4. Error handling
 
-- Search API failure (non-2xx, timeout, rate-limit) → log + fall back to `stubProvider` for that call; `research.output.web = []` with `source:"stub"`. Never fatal.
+- Search API failure (non-2xx, timeout, rate-limit) → log + fall back to `stubProvider` for that call; `research.output.web` is populated with the stub's snippets (not discarded) with `source:"stub"`. Never fatal.
 - No `SEARCH_API_KEY` → engine starts on stub; warning logged once.
 - Memory write failure → log, continue; `results.output` still written with `memory_write_error`.
 - `SearchMemory` failure → log + treat as empty memory (Phase 0 behavior).

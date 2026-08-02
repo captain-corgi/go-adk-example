@@ -39,7 +39,7 @@ type Loopable interface {  // Deliverable already satisfies the build contract; 
 }
 ```
 
-A `registry` (package-level map name→`Deliverable`, populated via `Register`) drives both graph construction and `ENABLED_DELIVERABLES` filtering. The shared `internal/build/loop` builder takes a `Loopable`, assembles `loopagent.New(loopagent.Config{AgentConfig: agent.Config{SubAgents: {drafter, checker}}, MaxIterations: spec.MaxIterations | globalCap})`, and gives the checker `exitlooptool.New()` so it terminates on pass.
+A `registry` (package-level map name→`Deliverable`, populated via `Register`) drives both graph construction and `ENABLED_DELIVERABLES` filtering. The shared `internal/build/loop` builder takes a `Loopable`, assembles `loopagent.New(loopagent.Config{AgentConfig: agent.Config{SubAgents: {drafter, checker}}, MaxIterations: maxIter})`, where `maxIter` is `spec.MaxIterations` when non-zero, otherwise `globalCap` (a bitwise OR combines bits rather than selecting, so it is not used). The builder gives the checker `exitlooptool.New()` so it terminates on pass.
 
 ### 2.2 New vertical packages (each implements `Loopable`)
 - **`internal/build/deliverables/social`** — `Name()="social"`. Emits threads, long posts, carousels, shorts-hooks. Quality protocol: hook in the first line, on-brand voice (per `{artifact.voice}`), platform length caps, one CTA.
