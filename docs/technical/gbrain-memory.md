@@ -11,8 +11,8 @@
   (`AddSessionToMemory`). This is the feedback loop.
 
 **Figure: one run's memory lifecycle. Brand context is frozen at startup;
-accumulated memory is read at research and written at results, so later runs
-recall it.**
+accumulated memory is read at research and written at results, so later runs in
+the same process can recall it. Persistence across process restarts is future work.**
 
 ```mermaid
 sequenceDiagram

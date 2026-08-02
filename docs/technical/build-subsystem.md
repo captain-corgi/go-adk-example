@@ -3,7 +3,7 @@
 The build stage (`internal/build/graph`) is itself a `workflow` graph, not a
 single agent:
 
-```
+```text
 Start ──fan-out──► [ eval loop ] ──fan-in──► join ──► finalize
 ```
 

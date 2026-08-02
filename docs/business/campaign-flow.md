@@ -17,8 +17,9 @@ through a shared workspace:
    version; the build uses what you signed off on.
 6. **Build** — drafts the landing page, then critiques and re-drafts it until it
    passes a quality check (hero, offer, CTA, on-brand) or hits a limit.
-7. **Results** — records the run back into gBrain memory, so later runs can learn
-   from it. This is the feedback loop: every campaign makes the next one smarter.
+7. **Results** — records the run back into gBrain memory, so later runs in the
+   same process can reuse it. This is the feedback loop: every campaign makes
+   the next one smarter (within the process lifetime).
 
 **Figure: a single run from idea to shipped campaign. The dotted edge is the
 feedback loop — what each run learns feeds the next one.**
@@ -31,8 +32,8 @@ flowchart TD
     Research --> Synthesis[Synthesis: one campaign plan]
     Synthesis --> Signoff{"Sign-off: approve or edit"}
     Signoff --> Build[Build: draft + critique loop]
-    Build --> Results[Results: ship + record]
-    Results --> Ship[On-brand landing-page campaign]
+    Build --> Ship[On-brand landing-page campaign]
+    Build --> Results[Results: record to gBrain]
     Results -.->|"writes gBrain memory"| Later[Later runs learn from it]
 ```
 

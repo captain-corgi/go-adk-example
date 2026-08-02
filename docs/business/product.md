@@ -8,7 +8,7 @@ finished, on-brand landing-page campaign you can ship. It runs the full creative
 process a marketer would: it briefs the idea, generates and scores campaign
 angles, pulls relevant background, turns that into a concrete plan, asks you to
 approve or edit it, builds the deliverable through a self-critique loop, and
-records what happened so the next run is smarter.
+records what happened so later runs in the same process can reuse it.
 
 It is also a learning project built on Google's Agent Development Kit for Go
 (adk-go), structured as a pipeline of cooperating AI agents rather than a single

@@ -4,7 +4,7 @@
 
 The engine is one `sequentialagent` pipeline of seven sub-agents:
 
-```
+```text
 brief → ideation → research → synthesis → signoff → build → results
 ```
 
@@ -12,7 +12,9 @@ Each stage reads upstream outputs from session state and writes one typed JSON
 blob to its own state key. Stages share no other coupling — that is what makes
 the pipeline swappable. The first four stages (and the build loop's
 drafter/checker) are `llmagent`s; signoff, build, and results are `workflowagent`s
-built from function nodes.
+built from function nodes. Sign-off is the exception: it publishes `signoff_output`
+and also overwrites `plan_output` with the approved plan, so build consumes what
+was actually signed off.
 
 **Figure: the pipeline, with the state key each stage writes as the edge to the
 next. State keys are the only coupling between stages.**
@@ -25,11 +27,13 @@ flowchart LR
     R -->|"research_output"| S[synthesis]
     S -->|"plan_output"| SO[sign-off]
     SO -->|"signoff_output"| BU[build]
+    SO -.->|"overwrites plan_output"| BU
     BU -->|"build_output"| RE[results]
 ```
 
-> `sign-off` also **overwrites `plan_output`** with the approved plan, so the
-> build stage always works from what was actually signed off.
+> `sign-off` publishes **`signoff_output`** and **overwrites `plan_output`** with
+> the approved plan (stored as a string), so the build stage always consumes what
+> was actually signed off.
 
 ### Pipeline stages
 
@@ -39,7 +43,7 @@ flowchart LR
 | ideation | `internal/stages/ideation` | `brief_output` | `ideation_output` | cheap | Generates ~6 angles, scores, keeps top 2–3. |
 | research | `internal/stages/research` | `brief_output` + memory | `research_output` | cheap | Recalls gBrain memory (via callback) + assembles findings. |
 | synthesis | `internal/stages/synthesis` | brief + ideation + research | `plan_output` | strong | Merges everything into one campaign plan. |
-| signoff | `internal/stages/signoff` | `plan_output` | `signoff_output` (+ overwrites `plan_output`) | — | Human approve/edit gate (HITL). |
+| signoff | `internal/stages/signoff` | `plan_output` | `signoff_output`, overwrites `plan_output` | — | Human approve/edit gate (HITL). Stores approved plan as string. |
 | build | `internal/build/graph` | `plan_output`, loop state | `build_output` + artifact | both | Runs the eval loop; finalizes + saves artifact. |
 | results | `internal/stages/results` | `build_output` | `results_output` | — | Writes gBrain memory; publishes run status. |
 
