@@ -6,8 +6,9 @@ import (
 	"iter"
 	"testing"
 
-	"github.com/captain-corgi/go-adk-example/internal/routing"
 	"google.golang.org/adk/v2/model"
+
+	"github.com/captain-corgi/go-adk-example/internal/routing"
 )
 
 // stubLLM is a zero-config model.LLM used only to test identity routing.
