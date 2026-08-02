@@ -43,31 +43,31 @@ func main() {
 
 	briefAg, err := brief.New(stages.Config{Model: cfg.Models.Cheap(), Brand: brand})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("brief: %v", err)
 	}
 	ideationAg, err := ideation.New(stages.Config{Model: cfg.Models.Cheap(), Brand: brand})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("ideation: %v", err)
 	}
 	researchAg, err := research.New(stages.Config{Model: cfg.Models.Cheap(), Brand: brand}, b)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("research: %v", err)
 	}
 	synthesisAg, err := synthesis.New(stages.Config{Model: cfg.Models.Strong(), Brand: brand})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("synthesis: %v", err)
 	}
 	signoffAg, err := signoff.New(cfg.AutoApprove)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("signoff: %v", err)
 	}
 	buildAg, err := graph.New(cfg.Models, cfg.MaxLoopIter)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("build: %v", err)
 	}
 	resultsAg, err := results.New(mem)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("results: %v", err)
 	}
 
 	pipeline, err := sequentialagent.New(sequentialagent.Config{
