@@ -2,6 +2,7 @@
 package signoff
 
 import (
+	"log"
 	"strings"
 
 	"google.golang.org/adk/v2/agent"
@@ -31,9 +32,14 @@ func New(autoApprove bool) (agent.Agent, error) {
 					return nil, err
 				}
 				decision, _ := reply.(string)
-				if trimmed := strings.TrimSpace(decision); trimmed != "" &&
-					!strings.EqualFold(trimmed, "approve") {
-					approved = decision // edited plan
+				switch classifyReply(decision) {
+				case signoffEdit:
+					approved = decision // user pasted an edited plan
+				case signoffReject:
+					// No pipeline-abort path exists in Phase 0, so a rejection
+					// keeps the synthesis plan rather than overwriting it with
+					// the rejection word. A real reject/abort is Phase 1 HITL.
+					log.Printf("signoff: rejection %q received; no abort path in Phase 0, keeping synthesis plan", strings.TrimSpace(decision))
 				}
 			}
 
@@ -63,6 +69,41 @@ func New(autoApprove bool) (agent.Agent, error) {
 		Description: "Human sign-off gate between synthesis and build.",
 		Edges:       eb.Build(),
 	})
+}
+
+// signoffAction is the outcome of classifying a human reply at the sign-off gate.
+type signoffAction int
+
+const (
+	signoffApprove signoffAction = iota // explicit "approve" or empty: keep the synthesis plan
+	signoffReject                       // explicit rejection word: keep the synthesis plan (no abort in Phase 0)
+	signoffEdit                         // anything else: treat the reply as an edited plan
+)
+
+// classifyReply interprets a sign-off reply. The Phase-0 prompt offers only
+// "approve" or "paste an edited plan"; an explicit rejection (or an empty
+// reply) keeps the existing synthesis plan instead of overwriting it with the
+// reply text, so answering "no"/"reject" can never become the campaign plan.
+func classifyReply(reply string) signoffAction {
+	t := strings.TrimSpace(reply)
+	if t == "" || strings.EqualFold(t, "approve") {
+		return signoffApprove
+	}
+	if isRejection(t) {
+		return signoffReject
+	}
+	return signoffEdit
+}
+
+// isRejection reports whether s is an unambiguous rejection of the plan.
+func isRejection(s string) bool {
+	switch strings.ToLower(s) {
+	case "no", "n", "nope", "nah", "reject", "rejected", "deny", "denied",
+		"decline", "declined", "cancel", "cancelled", "canceled",
+		"stop", "abort", "false":
+		return true
+	}
+	return false
 }
 
 func stateString(ctx agent.Context, key string) string {
