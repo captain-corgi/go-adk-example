@@ -16,3 +16,8 @@
 /vendor/
 go.work
 go.work.sum
+
+# Local agent tooling / scratch — not for the shared repo
+.agentkit
+.claude
+.superpowers/
