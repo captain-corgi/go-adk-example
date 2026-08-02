@@ -38,8 +38,14 @@ func Load() (*Config, error) {
 	}
 
 	ctx := context.Background()
-	strong := buildModel(ctx, firstNonEmpty(os.Getenv("MODEL_STRONG"), os.Getenv("OPENAI_MODEL")))
-	cheap := buildModel(ctx, firstNonEmpty(os.Getenv("MODEL_CHEAP"), os.Getenv("OPENAI_MODEL")))
+	strong, err := buildModel(ctx, firstNonEmpty(os.Getenv("MODEL_STRONG"), os.Getenv("OPENAI_MODEL")))
+	if err != nil {
+		return nil, err
+	}
+	cheap, err := buildModel(ctx, firstNonEmpty(os.Getenv("MODEL_CHEAP"), os.Getenv("OPENAI_MODEL")))
+	if err != nil {
+		return nil, err
+	}
 
 	return &Config{
 		Models:      routing.NewModels(strong, cheap),
@@ -50,9 +56,11 @@ func Load() (*Config, error) {
 }
 
 // buildModel constructs an OpenAI-compatible model. A missing name falls back
-// to defaultModel; a construction failure is fatal (the engine cannot run
-// without a model). Tests inject fakes, so they never call buildModel.
-func buildModel(ctx context.Context, name string) model.LLM {
+// to defaultModel. A construction failure is returned to the caller (config.Load)
+// so the error contract of Load — not a process-killing log.Fatalf here — is
+// honored and callers (main.go, future tests) can report or recover.
+// Tests inject fakes and never call buildModel.
+func buildModel(ctx context.Context, name string) (model.LLM, error) {
 	if name == "" {
 		name = defaultModel
 	}
@@ -61,9 +69,9 @@ func buildModel(ctx context.Context, name string) model.LLM {
 		BaseURL: os.Getenv("OPENAI_BASE_URL"),
 	})
 	if err != nil {
-		log.Fatalf("create model %q: %v", name, err)
+		return nil, fmt.Errorf("create model %q: %w", name, err)
 	}
-	return m
+	return m, nil
 }
 
 func firstNonEmpty(vals ...string) string {

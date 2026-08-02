@@ -5,6 +5,7 @@ package stagetest
 import (
 	"context"
 	"iter"
+	"strings"
 	"testing"
 
 	"google.golang.org/adk/v2/agent"
@@ -49,6 +50,48 @@ func (m *ScriptedLLM) GenerateContent(context.Context, *model.LLMRequest, bool) 
 }
 
 var _ model.LLM = (*ScriptedLLM)(nil)
+
+// RecordingLLM is a model.LLM that appends every request it receives to
+// Requests and returns the canned text. Use it to assert what the pipeline
+// actually sent to the model — e.g. that a stage configured with
+// IncludeContentsNone still receives the user's raw message. In adk, "none"
+// means "current turn only": the runner appends the user's message as a
+// user-authored session event before the agent runs, and that event is
+// delivered as req.Contents[0]; only prior history is dropped.
+type RecordingLLM struct {
+	Text     string
+	Requests []*model.LLMRequest
+}
+
+func (m *RecordingLLM) Name() string { return "recording" }
+func (m *RecordingLLM) GenerateContent(_ context.Context, req *model.LLMRequest, _ bool) iter.Seq2[*model.LLMResponse, error] {
+	m.Requests = append(m.Requests, req)
+	return func(yield func(*model.LLMResponse, error) bool) {
+		yield(&model.LLMResponse{Content: genai.NewContentFromText(m.Text, "model")}, nil)
+	}
+}
+
+var _ model.LLM = (*RecordingLLM)(nil)
+
+// RequestText flattens the text parts of a single LLMRequest's contents into
+// one string. Returns "" if the request or its contents are empty.
+func RequestText(req *model.LLMRequest) string {
+	if req == nil {
+		return ""
+	}
+	var b strings.Builder
+	for _, c := range req.Contents {
+		if c == nil {
+			continue
+		}
+		for _, p := range c.Parts {
+			if p != nil && p.Text != "" {
+				b.WriteString(p.Text)
+			}
+		}
+	}
+	return b.String()
+}
 
 // RunAgent runs ag once in a fresh in-memory session, seeded with state, and
 // returns the state accumulated from every event's StateDelta.
