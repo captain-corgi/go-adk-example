@@ -118,6 +118,9 @@ func TestPipelineShipsLandingPage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("run: %v", err)
 		}
+		if ev == nil {
+			continue
+		}
 		for k, v := range ev.Actions.StateDelta {
 			state[k] = v
 		}

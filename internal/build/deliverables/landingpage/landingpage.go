@@ -30,7 +30,7 @@ func (l *LandingPage) Build(_ context.Context, in deliverables.BuildInput) (*del
 	if !strings.Contains(d, "offer") && !strings.Contains(d, "%") && !strings.Contains(d, "free") {
 		return nil, errors.New("landing page missing an offer")
 	}
-	if !strings.Contains(d, "cta") && !strings.Contains(strings.ToLower(in.Draft), "sign up") && !strings.Contains(d, "start") {
+	if !strings.Contains(d, "cta") && !strings.Contains(d, "sign up") && !strings.Contains(d, "start") {
 		return nil, errors.New("landing page missing a call to action")
 	}
 	return &deliverables.Artifact{Name: artifactName, Content: in.Draft}, nil

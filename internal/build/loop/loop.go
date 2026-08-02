@@ -40,12 +40,12 @@ func New(spec LoopSpec, models routing.Models, maxIter int) (agent.Agent, error)
 		Instruction: fmt.Sprintf(`%s
 
 Campaign plan (JSON):
-{plan_output}
+{%s}
 
 Prior critique, if any:
 {%s?}
 
-Return ONLY the deliverable Markdown.`, spec.DrafterInstruction(), spec.CritiqueKey()),
+Return ONLY the deliverable Markdown.`, spec.DrafterInstruction(), keys.Plan, spec.CritiqueKey()),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("drafter: %w", err)

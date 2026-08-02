@@ -2,6 +2,8 @@
 package signoff
 
 import (
+	"strings"
+
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/agent/workflowagent"
 	"google.golang.org/adk/v2/session"
@@ -28,7 +30,9 @@ func New(autoApprove bool) (agent.Agent, error) {
 				if err != nil {
 					return nil, err
 				}
-				if decision, _ := reply.(string); decision != "" && decision != "approve" {
+				decision, _ := reply.(string)
+				if trimmed := strings.TrimSpace(decision); trimmed != "" &&
+					!strings.EqualFold(trimmed, "approve") {
 					approved = decision // edited plan
 				}
 			}
@@ -37,9 +41,15 @@ func New(autoApprove bool) (agent.Agent, error) {
 			// unobservable from an EmittingFunctionNode (runEmitting discards
 			// ctx.actions.StateDelta and does not special-case a *session.Event
 			// return), so emit the StateDelta event directly and return nil to
-			// suppress the terminal event.
+			// suppress the terminal event. keys.Plan is also overwritten with the
+			// approved/edited plan so the downstream drafter (templates
+			// {plan_output}) and finalize (reads keys.Plan) build from what was
+			// actually signed off, not the synthesis draft.
 			ev := session.NewEvent(ctx, ctx.InvocationID())
-			ev.Actions = session.EventActions{StateDelta: map[string]any{keys.Signoff: approved}}
+			ev.Actions = session.EventActions{StateDelta: map[string]any{
+				keys.Signoff: approved,
+				keys.Plan:    approved,
+			}}
 			if err := emit(ev); err != nil {
 				return nil, err
 			}

@@ -2,6 +2,8 @@
 package ideation
 
 import (
+	"fmt"
+
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/agent/llmagent"
 
@@ -18,14 +20,14 @@ func New(cfg stages.Config) (agent.Agent, error) {
 		Description:     "Generates and scores campaign angles against the brief and brand.",
 		IncludeContents: llmagent.IncludeContentsNone,
 		OutputKey:       keys.Ideation,
-		Instruction: cfg.Brand + `
+		Instruction: cfg.Brand + fmt.Sprintf(`
 You are the IDEATION stage of a marketing engine.
 The structured brief (JSON):
-{brief_output}
+{%s}
 
 Generate roughly six campaign angles, score each (1-10) against the brand voice and the
 brief's audience, and keep the top 2-3. Return JSON with EXACTLY:
 {"angles": [{"name": string, "score": number, "rationale": string}]}.
-Return ONLY the JSON, no prose.`,
+Return ONLY the JSON, no prose.`, keys.Brief),
 	})
 }

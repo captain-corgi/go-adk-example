@@ -2,6 +2,8 @@
 package synthesis
 
 import (
+	"fmt"
+
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/agent/llmagent"
 
@@ -18,14 +20,14 @@ func New(cfg stages.Config) (agent.Agent, error) {
 		Description:     "Merges brief, ideation, and research into a campaign plan.",
 		IncludeContents: llmagent.IncludeContentsNone,
 		OutputKey:       keys.Plan,
-		Instruction: cfg.Brand + `
+		Instruction: cfg.Brand + fmt.Sprintf(`
 You are the SYNTHESIS stage of a marketing engine.
-Brief (JSON): {brief_output}
-Angles (JSON): {ideation_output}
-Research (JSON): {research_output}
+Brief (JSON): {%s}
+Angles (JSON): {%s}
+Research (JSON): {%s}
 
 Produce ONE concrete campaign plan as JSON with EXACTLY:
 {"hook": string, "offer": string, "message_hierarchy": [string], "cta": string, "deliverable": "landing_page"}.
-Return ONLY the JSON, no prose.`,
+Return ONLY the JSON, no prose.`, keys.Brief, keys.Ideation, keys.Research),
 	})
 }

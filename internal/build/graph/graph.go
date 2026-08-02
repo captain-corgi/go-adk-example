@@ -4,6 +4,7 @@ package graph
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/agent/workflowagent"
@@ -73,6 +74,7 @@ func finalize(lp *landingpage.LandingPage) func(ctx agent.Context, _ any) (*sess
 		})
 		if err != nil {
 			// Non-converged drafts may fail validation; still ship what we have.
+			log.Printf("build: deliverable validation failed (shipping best draft): %v", err)
 			art = &deliverables.Artifact{Name: "landing_page.md", Content: draftStr}
 		}
 		if _, err := ctx.Artifacts().Save(ctx, art.Name, genai.NewPartFromText(art.Content)); err != nil {
@@ -82,7 +84,10 @@ func finalize(lp *landingpage.LandingPage) func(ctx agent.Context, _ any) (*sess
 		out := map[string]any{"landing_page": art.Name, "quality": quality}
 		payload, _ := json.Marshal(out)
 		ev := session.NewEvent(ctx, ctx.InvocationID())
-		ev.Actions = session.EventActions{StateDelta: map[string]any{keys.Build: string(payload)}}
+		ev.Actions = session.EventActions{StateDelta: map[string]any{
+			keys.Build:   string(payload),
+			keys.Verdict: "", // reset for the next run's eval loop
+		}}
 		return ev, nil
 	}
 }

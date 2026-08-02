@@ -50,7 +50,7 @@ This is the interface every phase implements against. Phase 0 freezes it; later 
 
 ### 3.1 Package layout
 
-```
+```text
 cmd/engine/main.go              # build agents, run launcher
 internal/
   config/                       # env, model construction (Models registry)

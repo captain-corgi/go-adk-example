@@ -34,7 +34,7 @@ These supers the corresponding lines in the specs; they are forced by real ADK v
 
 ## File Structure
 
-```
+```text
 brand/                                 # gBrain frozen source (seed files, committed)
   voice.md  offers.md  icp.md          # short Markdown; engine runs out of the box
 .env.example                           # add MODEL_STRONG, MODEL_CHEAP, AUTO_APPROVE, MAX_LOOP_ITER, GBRAIN_DIR

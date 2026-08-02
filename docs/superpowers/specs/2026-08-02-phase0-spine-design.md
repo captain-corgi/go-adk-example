@@ -8,7 +8,7 @@
 
 ## 1. Architecture
 
-```
+```text
                  ┌──────────────── sequentialagent (the pipeline) ────────────────┐
 user idea ──►   brief ─► ideation ─► research ─► synthesis ─► signoff ─► build ─► results
                    │         │           │            │         │         │         │

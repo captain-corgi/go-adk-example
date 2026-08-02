@@ -3,6 +3,8 @@ package research
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"strings"
 
 	"google.golang.org/adk/v2/agent"
@@ -21,10 +23,6 @@ import (
 func New(cfg stages.Config, b *brain.Brain) (agent.Agent, error) {
 	mem := b.Memory()
 	cb := func(ctx agent.Context) (*genai.Content, error) {
-		// Skip if already populated (idempotent across re-runs).
-		if v, _ := ctx.State().Get(keys.MemCtx); v != nil {
-			return nil, nil
-		}
 		var query string
 		if v, _ := ctx.State().Get(keys.Brief); v != nil {
 			if s, ok := v.(string); ok {
@@ -33,9 +31,15 @@ func New(cfg stages.Config, b *brain.Brain) (agent.Agent, error) {
 		}
 		// Use ctx.AppName()/ctx.UserID() directly: ctx.Session() returns nil
 		// inside a BeforeAgentCallback (the callback context restricts it).
+		// Re-query every turn — a follow-up idea in the same session must not
+		// reuse the prior idea's memory context.
 		found, err := brainLoad(ctx, mem, ctx.AppName(), ctx.UserID(), query)
 		if err != nil {
-			return nil, err
+			// Memory retrieval is best-effort; missing memory is an acceptable
+			// degraded state ({memory_context?}). Degrade rather than aborting
+			// the whole research stage on a transient SearchMemory failure.
+			log.Printf("research: memory search failed: %v", err)
+			found = ""
 		}
 		return nil, ctx.State().Set(keys.MemCtx, found)
 	}
@@ -47,14 +51,14 @@ func New(cfg stages.Config, b *brain.Brain) (agent.Agent, error) {
 		IncludeContents:      llmagent.IncludeContentsNone,
 		OutputKey:            keys.Research,
 		BeforeAgentCallbacks: []agent.BeforeAgentCallback{cb},
-		Instruction: cfg.Brand + `
+		Instruction: cfg.Brand + fmt.Sprintf(`
 You are the RESEARCH stage of a marketing engine.
-The brief (JSON): {brief_output}
+The brief (JSON): {%s}
 
-Relevant past memory (may be empty): {memory_context?}
+Relevant past memory (may be empty): {%s?}
 
 Return JSON with EXACTLY: {"findings": [string], "relevant_rules": [string]}.
-Return ONLY the JSON, no prose.`,
+Return ONLY the JSON, no prose.`, keys.Brief, keys.MemCtx),
 	})
 }
 
